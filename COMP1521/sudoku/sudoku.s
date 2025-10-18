@@ -433,15 +433,15 @@ main__epilogue:
 print_welcome:
 	# Subset:   0
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra]       
+	# Uses:     [$a0, $v0]  # arguments and syscall registers used
+	# Clobbers: [$a0, $v0]  
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:               # none declared; no local variables on stack
+	#   - (none)
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   print_welcome
 	#   -> [prologue]
 	#       -> body
 	#   -> [epilogue]
@@ -541,15 +541,17 @@ print_welcome__epilogue:
 get_box_num:
 	# Subset:   0
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra, $s0, $s1]      
+	# Uses:     [$a0, $a1, $v0, $t0]  
+	# Clobbers: [$t0, $v0]            # $t0 and $v0 are modified during computation
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - s0 : row index (copy of a0)
+	#   - s1 : column index (copy of a1)
+	#   - t0 : box_len (temporary)
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   get_box_num
 	#   -> [prologue]
 	#       -> body
 	#   -> [epilogue]
@@ -592,17 +594,20 @@ get_box_num__epilogue:
 in_bounds:
 	# Subset:   1
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra, $s0]            
+	# Uses:     [$a0, $v0, $t0]       
+	# Clobbers: [$t0, $v0]           
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - s0 : value to check (row or column index)
+	#   - t0 : board_size (upper bound)
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   in_bounds
 	#   -> [prologue]
 	#       -> body
+	#           -> check if 0 <= a0 < board_size
+	#           -> set v0 = TRUE or FALSE
 	#   -> [epilogue]
 
 in_bounds__prologue:
@@ -635,17 +640,21 @@ in_bounds__epilogue:
 find_box_len:
 	# Subset:   1
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra, $s0]           
+	# Uses:     [$a0, $v0, $t0, $t1]  
+	# Clobbers: [$t0, $t1, $v0]       
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - s0 : input value (board_size)
+	#   - t0 : candidate divisor (starts at board_size / 2)
+	#   - t1 : t0 * t0, used to test for perfect square
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   find_box_len
 	#   -> [prologue]
 	#       -> body
+	#           -> loop: find integer t0 such that t0*t0 == board_size
+	#           -> set v0 = t0 if found, else FALSE
 	#   -> [epilogue]
 
 find_box_len__prologue:
@@ -686,17 +695,23 @@ find_box_len__epilogue:
 game_loop:
 	# Subset:   1
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra, $s0, $s1, $s2]         
+	# Uses:     [$t1, $a0, $v0, $s0, $s1, $s2]
+	# Clobbers: [$t1, $a0, $v0]               
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - s0 : GAME_STATE_PLAYING (used as reference for comparisons)
+	#   - s1 : GAME_STATE_WON (used to check win condition)
+	#   - s2 : GAME_STATE_OVER (used to check lose condition)
+	#   - t1 : holds current game_state
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   game_loop
 	#   -> [prologue]
 	#       -> body
+	#           -> init: check and set game_state
+	#           -> loop: process_command, update_game_state
+	#           -> conditionals: check for WIN / OVER
 	#   -> [epilogue]
 
 game_loop__prologue:
@@ -755,17 +770,24 @@ game_loop__epilogue:
 update_game_state:
 	# Subset:   1
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra, $s0, $s1, $s2]        
+	# Uses:     [$t1, $t2, $t3, $v0, $s0, $s1, $s2]  
+	# Clobbers: [$t1, $t2, $t3, $v0]        
+	# Locals:
+	#   - s0 : GAME_STATE_PLAYING (used to check current state)
+	#   - s1 : MAX_MISTAKES (used for loss condition)
+	#   - s2 : GAME_STATE_WON (used for win condition)
+	#   - t1 : current game_state
+	#   - t2 : mistakes count
+	#   - t3 : cells_remaining
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
-	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   update_game_state
 	#   -> [prologue]
 	#       -> body
+	#           -> if (game_state != PLAYING) return
+	#           -> check mistakes → set GAME_STATE_OVER if exceeded
+	#           -> check cells_remaining → set GAME_STATE_WON if 0
 	#   -> [epilogue]
 
 update_game_state__prologue:
@@ -810,17 +832,26 @@ update_game_state__epilogue:
 option_is_valid:
 	# Subset:   1
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra, $s0, $s1, $s2]        
+	# Uses:     [$a0, $a1, $a2, $t0, $t1, $t2, $t3, $v0, $s0, $s1, $s2] 
+	# Clobbers: [$t0, $t1, $t2, $t3, $v0]     
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - s0 : value to check
+	#   - s1 : address of option_list
+	#   - s2 : number of options
+	#   - t0 : loop index
+	#   - t1 : current option value
+	#   - t2 : offset (index * 4)
+	#   - t3 : address of current element (s1 + offset)
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   option_is_valid
 	#   -> [prologue]
 	#       -> body
+	#           -> loop: iterate through option_list
+	#           -> compare each option to value
+	#           -> return TRUE if match found, FALSE otherwise
 	#   -> [epilogue]
 
 option_is_valid__prologue:
@@ -869,17 +900,23 @@ option_is_valid__epilogue:
 generate_puzzle:
 	# Subset:   1
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra]                       
+	# Uses:     [$a0, $a1, $a2, $v0]         
+	# Clobbers: [$a0, $a1, $a2, $v0]        
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - a0 : used for passing addresses (solver, random_digits)
+	#   - a1 : row index argument for solve()
+	#   - a2 : column index argument for solve()
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   generate_puzzle
 	#   -> [prologue]
 	#       -> body
+	#           -> initialise_board_tracker(solver)
+	#           -> initialise_digit_choices(random_digits)
+	#           -> solve(solver, 0, 0)
+	#           -> make_user_puzzle()
 	#   -> [epilogue]
 
 generate_puzzle__prologue:
@@ -910,17 +947,26 @@ generate_puzzle__epilogue:
 initialise_game:
 	# Subset:   1
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra]                         
+	# Uses:     [$a0, $a1, $a2, $v0, $t0]    
+	# Clobbers: [$a0, $a1, $a2, $v0, $t0]     
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - a0 : general syscall / argument register
+	#   - a1 : address of validation list (board_size_opts or difficulty_opts)
+	#   - a2 : number of options for validation
+	#   - v0 : syscall input/output register (also stores user input)
+	#   - t0 : temporary used to set GAME_STATE_PLAYING
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   initialise_game
 	#   -> [prologue]
 	#       -> body
+	#           -> prompt and validate board size
+	#           -> prompt and validate difficulty
+	#           -> prompt for random seed
+	#           -> compute box_len via find_box_len
+	#           -> initialize game_state, mistakes, and hints_used
 	#   -> [epilogue]
 
 initialise_game__prologue:
@@ -1014,19 +1060,23 @@ initialise_game__epilogue:
 # .TEXT <cell_display_char>
 	.text
 cell_display_char:
-	# Subset:   2
+	# Subset:   1
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra, $s0]                    
+	# Uses:     [$a0, $v0, $t0, $s0]          
+	# Clobbers: [$t0, $v0]                    
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - s0 : cell value (input)
+	#   - t0 : temporary for comparison or ASCII conversion
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   cell_display_char
 	#   -> [prologue]
 	#       -> body
+	#           -> check if cell is empty
+	#           -> convert numeric value to ASCII digit or symbol
+	#           -> return display character in v0
 	#   -> [epilogue]
 
 cell_display_char__prologue:
@@ -1062,21 +1112,30 @@ cell_display_char__epilogue:
 # .TEXT <initialise_board>
 	.text
 initialise_board:
-	# Subset:   2
+	# Subset:  2
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra, $s0]                    
+	# Uses:     [$a0, $t0, $t1, $t2, $t3, $t4, $t5, $v0, $s0]  
+	# Clobbers: [$t0, $t1, $t2, $t3, $t4, $t5, $v0]          
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - s0 : pointer to start of board array
+	#   - t0 : row index
+	#   - t1 : column index
+	#   - t2 : value to store (UNSET)
+	#   - t3 : row offset in array
+	#   - t4 : address of current cell
+	#   - t5 : base address of board array
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   initialise_board
 	#   -> [prologue]
 	#       -> body
+	#           -> outer loop over rows
+	#               -> inner loop over columns
+	#                   -> compute cell address
+	#                   -> store UNSET value
 	#   -> [epilogue]
-
 initialise_board__prologue:
 	begin
 	push 	$ra
@@ -1124,19 +1183,31 @@ initialise_board__epilogue:
 # .TEXT <initialise_digit_choices>
 	.text
 initialise_digit_choices:
-	# Subset:   2
+		# Subset:   2
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra, $s0, $s1, $s2, $s3, $s4, $s5, $s6]   
+	# Uses:     [$a0, $a1, $v0, $t0, $t1, $t2, $s0-$s6]   
+	# Clobbers: [$a0, $a1, $v0, $t0, $t1, $t2]             
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - s0 : pointer to digit_options array
+	#   - s1 : board_size
+	#   - s2 : loop index
+	#   - s3 : base address of is_digit_used array
+	#   - s4 : current randomly chosen digit
+	#   - s5 : offset for is_digit_used[digit]
+	#   - s6 : address of is_digit_used[digit]
+	#   - t0-t2 : temporary registers for calculations
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   initialise_digit_choices
 	#   -> [prologue]
 	#       -> body
+	#           -> initialize is_digit_used[] to FALSE
+	#           -> loop over board_size:
+	#               -> generate random digit not already used
+	#               -> store in digit_options[i]
+	#               -> mark is_digit_used[digit] = TRUE
 	#   -> [epilogue]
 
 initialise_digit_choices__prologue:
@@ -1227,17 +1298,28 @@ initialise_digit_choices__epilogue:
 is_cell_filled:
 	# Subset:   2
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$s0, $s1, $s2, $ra]          
+	# Uses:     [$a0, $a1, $a2, $v0, $t0-$t4, $s0-$s2]  
+	# Clobbers: [$t0, $t1, $t2, $t3, $t4, $v0]         
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - s0 : pointer to tracker (board struct)
+	#   - s1 : row index (x)
+	#   - s2 : column index (y)
+	#   - t0 : base address of board array within tracker
+	#   - t1 : board_size
+	#   - t2 : offset = row * MAX_BOARD_LEN + col
+	#   - t3 : value of board[x][y]
+	#   - t4 : constant UNSET for comparison
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   is_cell_filled
 	#   -> [prologue]
 	#       -> body
+	#           -> compute board base address
+	#           -> compute offset from row/col
+	#           -> load board cell
+	#           -> return TRUE if cell != UNSET, else FALSE
 	#   -> [epilogue]
 
 is_cell_filled__prologue:
@@ -1295,17 +1377,27 @@ is_cell_filled__epilogue:
 handle_move:
 	# Subset:   2
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra, $s0, $s1, $s2]           
+	# Uses:     [$a0, $a1, $a2, $a3, $v0, $t0, $s0-$s2]  
+	# Clobbers: [$t0, $v0, $a0-$a3]           
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - s0 : row index (x)
+	#   - s1 : column index (y)
+	#   - s2 : value to place in cell
+	#   - t0 : temporary for counters (cells_remaining, mistakes)
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   handle_move
 	#   -> [prologue]
 	#       -> body
+	#           -> check if x, y, and value are in bounds
+	#           -> check if cell is already filled
+	#           -> check if value is valid for this cell
+	#               -> if valid: update cell, decrement cells_remaining, return SUCCESS
+	#               -> if invalid: increment mistakes, return MISTAKE
+	#           -> if cell already filled: return ALREADY_FILLED
+	#           -> if out of bounds: return INVALID
 	#   -> [epilogue]
 
 handle_move__prologue:
@@ -1388,18 +1480,31 @@ handle_move__epilogue:
 update_cell:
 	# Subset:   3
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra, $s0, $s1, $s2, $s3]      
+	# Uses:     [$a0-$a3, $v0, $t0-$t5, $s0-$s3] 
+	# Clobbers: [$t0-$t5, $v0, $a0-$a3]       
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - s0 : pointer to board_tracker struct
+	#   - s1 : row index
+	#   - s2 : column index
+	#   - s3 : new_digit to place in the cell
+	#   - t0 : box number for row/col
+	#   - t1 : current digit at cell
+	#   - t2 : use_digit flag (TRUE/FALSE)
+	#   - t3-t5 : temporary addresses/offsets for board and is_filled arrays
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   update_cell
 	#   -> [prologue]
 	#       -> body
+	#           -> compute box number
+	#           -> determine if new_digit is UNSET
+	#               -> if UNSET: retrieve existing digit and mark use_digit = FALSE
+	#           -> store new_digit in board[row][col]
+	#           -> update is_filled_row, is_filled_col, and is_filled_box arrays
 	#   -> [epilogue]
+
 
 update_cell__prologue:
 	begin
@@ -1488,17 +1593,31 @@ update_cell__epilogue:
 solve:
 	# Subset:   3
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra, $s0, $s1, $s2, $s3, $s4, $s5]   
+	# Uses:     [$a0-$a3, $v0, $t0-$t1, $s0-$s5]       
+	# Clobbers: [$a0-$a3, $v0, $t0-$t1]              
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - s0 : pointer to board_tracker struct
+	#   - s1 : current row index (x)
+	#   - s2 : current column index (y)
+	#   - s3 : board_size
+	#   - s4 : loop index for iterating over digits
+	#   - s5 : current digit to try from random_digits
+	#   - t0-t1 : temporary registers for addresses and computations
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   solve
 	#   -> [prologue]
 	#       -> body
+	#           -> base case: if x >= board_size, return TRUE
+	#           -> if y == board_size, move to next row, column = 0, recursive call
+	#           -> if cell is filled, move to next column, recursive call
+	#           -> loop through random_digits:
+	#               -> check if digit is valid
+	#               -> if valid: update_cell, recursive call to next cell
+	#               -> if recursive call fails, reset cell to UNSET
+	#           -> return FALSE if no digit fits
 	#   -> [epilogue]
 
 solve__prologue:
@@ -1608,17 +1727,32 @@ solve__epilogue:
 make_user_puzzle:
 	# Subset:   3
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra, $s0, $s1, $s2, $s3, $s4, $s5, $s6]   
+	# Uses:     [$a0-$a3, $v0, $t0-$t1, $s0-$s6]            
+	# Clobbers: [$a0-$a3, $v0, $t0-$t1]                     
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - s0 : pointer to user puzzle array
+	#   - s1 : board_size
+	#   - s2 : total_cells = board_size^2
+	#   - s3 : number of cells to show
+	#   - s4 : counter for loop (num_showing)
+	#   - s5 : computed row index
+	#   - s6 : computed column index
+	#   - t0-t1 : temporary registers for addresses and calculations
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   make_user_puzzle
 	#   -> [prologue]
 	#       -> body
+	#           -> initialize user puzzle board
+	#           -> calculate number of cells to show based on difficulty
+	#           -> loop until enough cells are revealed:
+	#               -> pick random cell
+	#               -> if cell is empty:
+	#                   -> copy value from solved board
+	#                   -> update_cell to mark it filled
+	#           -> update cells_remaining
 	#   -> [epilogue]
 
 make_user_puzzle__prologue:
@@ -1705,17 +1839,33 @@ make_user_puzzle__epilogue:
 give_hint:
 	# Subset:   3
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra, $s0-$s7]                        
+	# Uses:     [$a0-$a3, $v0, $t0-$t1, $s0-$s7]    
+	# Clobbers: [$a0-$a3, $v0, $t0-$t1]             
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - s0 : temporary pointer to the answer in solver board
+	#   - s1 : board_size
+	#   - s2 : total_cells = board_size^2
+	#   - s3 : loop counter / starting random index
+	#   - s4 : ending index for loop
+	#   - s5 : row index for hint
+	#   - s6 : column index for hint
+	#   - s7 : unused / extra saved register for temporaries
+	#   - t0-t1 : temporary registers for calculations and address computations
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   give_hint
 	#   -> [prologue]
 	#       -> body
+	#           -> check if hints_used >= MAX_HINTS: return FALSE if so
+	#           -> copy current puzzle to solver and solve
+	#           -> pick random starting index and iterate over board
+	#               -> find first empty cell
+	#               -> copy correct value from solved board to puzzle
+	#               -> increment hints_used, decrement cells_remaining
+	#               -> print hint message
+	#           -> return TRUE if hint provided
 	#   -> [epilogue]
 
 give_hint__prologue:
@@ -1828,17 +1978,22 @@ give_hint__epilogue:
 copy_mem:
 	# Subset:   3
 	#
-	# Frame:    [...]   <-- FILL THESE OUT!
-	# Uses:     [...]
-	# Clobbers: [...]
+	# Frame:    [$ra, $s0-$s2]                    
+	# Uses:     [$a0-$a2, $v0, $t0-$t4, $s0-$s2] 
+	# Clobbers: [$a0-$a2, $t0-$t4]               
 	#
-	# Locals:           <-- FILL THIS OUT!
-	#   - ...
+	# Locals:
+	#   - s0 : source address pointer
+	#   - s1 : destination address pointer
+	#   - s2 : number of bytes to copy
+	#   - t0-t4 : temporary registers for calculations
 	#
-	# Structure:        <-- FILL THIS OUT!
-	#   main
+	# Structure:
+	#   copy_mem
 	#   -> [prologue]
 	#       -> body
+	#           -> copy full words (SIZEOF_INT) from source to destination
+	#           -> copy remaining bytes (SIZEOF_CHAR) if s2 is not a multiple of SIZEOF_INT
 	#   -> [epilogue]
 
 copy_mem__prologue:
